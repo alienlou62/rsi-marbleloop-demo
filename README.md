@@ -1,17 +1,15 @@
-#RSI Hot Wheels Demo
-A mechanical demonstration showcasing the precision of the RMP system at Robotics Systems Integration (RSI).
-This system features a user-adjustable ramp, a sensor-triggered gate, and a floor-based catcher to intercept a Hot Wheels car.
-Real-time speed measurements are used to predict trajectory and coordinate system timing.
+# RSI Hot Wheels Demo
 
-##Features
-Adjustable ramp angle via motor and encoder
+A mechanical demonstration showcasing the precision of the RMP system at Robotics Systems Integration (RSI).  
+This system uses a motorized, user-set ramp, sensor-triggered gate, and floor-based catcher to predict and intercept a Hot Wheels car in real time.
 
-Real-time speed sensing with dual sensors
+## Features
+- Adjustable ramp angle via motor and encoder  
+- Real-time speed sensing with dual sensors  
+- Predictive control of gate and catcher using RMP  
 
-###Build Instructions
-bash
-Copy
-Edit
+## Build Instructions
+```bash
 cd build
 cmake ..
 make
