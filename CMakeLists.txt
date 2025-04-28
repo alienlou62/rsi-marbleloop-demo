@@ -1,23 +1,22 @@
-cmake_minimum_required(VERSION 3.10)
-project(RSIHotWheelsDemo)
+cmake_minimum_required(VERSION 3.15)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 20)
 
-# --- Set the path to the RSI RapidCode SDK ---
-# IMPORTANT: Make sure this matches where your SDK is installed.
-# It sounds like your laser demo already uses "$HOME/rsi/RapidCode", so we match that.
-set(RAPIDCODE_ROOT "$ENV{HOME}/rsi/RapidCode")
+project(HotWheelsDemo)
 
-# --- Include and link RSI SDK ---
-include_directories(${RAPIDCODE_ROOT}/include)
-link_directories(${RAPIDCODE_ROOT}/lib)
+# Include RSI SDK headers
+include_directories(/rsi/examples/C++/include)
 
-# --- Add the main executable ---
-add_executable(HotWheelsDemo src/hotwheels_main.cpp)
-
-# --- Link against RSI libraries and required system libraries ---
-target_link_libraries(HotWheelsDemo
-    rsi
-    pthread
-    rt
+# Add your source files
+add_executable(HotWheelsDemo
+    src/hotwheels_main.cpp
 )
+
+# Set RMP Default Path
+target_compile_definitions(HotWheelsDemo PUBLIC RMP_DEFAULT_PATH="/rsi")
+
+# Link libraries AFTER creating the target
+target_link_libraries(HotWheelsDemo PRIVATE /rsi/librapidcode.so)
+
+# Optional: suppress warnings if needed
+target_compile_options(HotWheelsDemo PRIVATE "-Wno-deprecated-enum-enum-conversion")

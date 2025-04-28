@@ -1,1 +1,1 @@
-/usr/bin/c++ CMakeFiles/HotWheelsDemo.dir/src/hotwheels_main.cpp.o -o HotWheelsDemo   -L/home/rsi/rsi/RapidCode/lib  -Wl,-rpath,/home/rsi/rsi/RapidCode/lib -lrsi -lpthread -lrt 
+/usr/bin/c++ CMakeFiles/HotWheelsDemo.dir/src/hotwheels_main.cpp.o -o HotWheelsDemo  -Wl,-rpath,/rsi /rsi/librapidcode.so 

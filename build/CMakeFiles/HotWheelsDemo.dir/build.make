@@ -92,6 +92,7 @@ HotWheelsDemo_EXTERNAL_OBJECTS =
 
 HotWheelsDemo: CMakeFiles/HotWheelsDemo.dir/src/hotwheels_main.cpp.o
 HotWheelsDemo: CMakeFiles/HotWheelsDemo.dir/build.make
+HotWheelsDemo: /rsi/librapidcode.so
 HotWheelsDemo: CMakeFiles/HotWheelsDemo.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/rsi/Documents/Hotwheels/rsi-hotwheels-demo/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable HotWheelsDemo"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/HotWheelsDemo.dir/link.txt --verbose=$(VERBOSE)
