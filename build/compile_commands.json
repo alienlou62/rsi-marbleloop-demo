@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/rsi/Documents/Hotwheels/rsi-hotwheels-demo/build",
+  "command": "/usr/bin/g++ -DRMP_DEFAULT_PATH=\\\"/rsi\\\" -I/rsi/examples/C++/include -g -std=gnu++20 -Wno-deprecated-enum-enum-conversion -o CMakeFiles/HotWheelsDemo.dir/src/hotwheels_main.cpp.o -c /home/rsi/Documents/Hotwheels/rsi-hotwheels-demo/src/hotwheels_main.cpp",
+  "file": "/home/rsi/Documents/Hotwheels/rsi-hotwheels-demo/src/hotwheels_main.cpp",
+  "output": "CMakeFiles/HotWheelsDemo.dir/src/hotwheels_main.cpp.o"
+}
+]
