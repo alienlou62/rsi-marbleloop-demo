@@ -1,4 +1,4 @@
-# Install script for directory: /home/rsi/Documents/Hotwheels/rsi-hotwheels-demo
+# Install script for directory: /home/rsi/Documents/rsi-hotwheels-demo
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/rsi/Documents/Hotwheels/rsi-hotwheels-demo/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/rsi/Documents/rsi-hotwheels-demo/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

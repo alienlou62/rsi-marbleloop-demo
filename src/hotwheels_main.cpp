@@ -83,6 +83,12 @@ void SetupRMP()
     strncpy(p.NicPrimary, "enp1s0", p.PathLengthMaximum); // UPDATE NIC IF NEEDED
 
     controller = MotionController::Create(&p);
+    if (!controller)
+    {
+        cerr << "[ERROR] Failed to create MotionController. Exiting..." << endl;
+        exit(1);
+    }
+
     SampleAppsHelper::StartTheNetwork(controller);
 
     motorRamp = controller->AxisGet(RAMP);
@@ -98,22 +104,25 @@ void SetupRMP()
 
 double ReadSensor(int sensorID)
 {
-    int ioNode = 0;
     int bitIndex = (sensorID == 1) ? 0 : 1;
-    IO *digitalIO = controller->IOGet(ioNode);
+    int networkNode = 0; // Change if your digital I/O module is not node 0
+
+    IOPoint *sensorInput = IOPoint::CreateDigitalInput(controller, networkNode, bitIndex);
 
     auto start = chrono::steady_clock::now();
     while (true)
     {
-        if (digitalIO->BitGet(bitIndex) == 1)
+        if (sensorInput->Get()) // HIGH = object detected / beam broken
         {
             return chrono::duration<double>(chrono::steady_clock::now().time_since_epoch()).count();
         }
+
         if (chrono::steady_clock::now() - start > chrono::seconds(5))
         {
             cerr << "[Warning] Sensor " << sensorID << " timeout." << endl;
-            return 0.0; // Timeout fallback
+            return 0.0;
         }
+
         this_thread::sleep_for(chrono::milliseconds(1));
     }
 }
@@ -137,6 +146,7 @@ int main()
 {
     std::signal(SIGINT, SignalHandler);
     cout << "[HotWheels] Starting demo...\n";
+    //motorRamp->AmpEnableSet(false);
 
     try
     {
