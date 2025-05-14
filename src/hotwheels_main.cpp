@@ -29,6 +29,9 @@ enum AxisID
 MotionController *controller = nullptr;
 Axis *motorRamp = nullptr;
 Axis *motorDoor = nullptr;
+IOPoint *sensor1Input = nullptr;
+IOPoint *sensor2Input = nullptr;
+
 // Axis *motorCatcher = nullptr;
 volatile sig_atomic_t gShutdown = 0;
 
@@ -80,46 +83,65 @@ void SetupRMP()
 {
     MotionController::CreationParameters p;
     strncpy(p.RmpPath, "/rsi/", p.PathLengthMaximum);
-    strncpy(p.NicPrimary, "enp1s0", p.PathLengthMaximum); // UPDATE NIC IF NEEDED
+    strncpy(p.NicPrimary, "enp6s0", p.PathLengthMaximum);
+    p.CpuAffinity = 3;
+
 
     controller = MotionController::Create(&p);
-    if (!controller)
-    {
-        cerr << "[ERROR] Failed to create MotionController. Exiting..." << endl;
-        exit(1);
-    }
+    SampleAppsHelper::CheckErrors(controller);
 
     SampleAppsHelper::StartTheNetwork(controller);
 
+    // Motor setup
     motorRamp = controller->AxisGet(RAMP);
     motorDoor = controller->AxisGet(DOOR);
-    // motorCatcher = controller->AxisGet(CATCHER);
-
     InitMotor(motorRamp);
     InitMotor(motorDoor);
-    // InitMotor(motorCatcher);
-
     cout << "[RMP] Motors initialized.\n";
+
+    try
+    {
+        int sensorNode = 1;                                                     // AKD drive node
+        sensor1Input = IOPoint::CreateDigitalInput(controller, sensorNode, 0);  // X7 pin 9
+        sensor2Input = IOPoint::CreateDigitalInput(controller, sensorNode, 1); // X7 pin 10
+        cout << "[I/O] Digital inputs created successfully.\n";
+    }
+    catch (const std::exception &e)
+    {
+        cerr << "[ERROR] Failed to create digital inputs: " << e.what() << endl;
+        exit(1); // Exit on critical setup failure
+    }
 }
 
-double ReadSensor(int sensorID)
+double ReadSensor(IOPoint *sensorInput)
 {
-    int bitIndex = (sensorID == 1) ? 0 : 1;
-    int networkNode = 0; // Change if your digital I/O module is not node 0
 
-    IOPoint *sensorInput = IOPoint::CreateDigitalInput(controller, networkNode, bitIndex);
+    if (!sensorInput)
+    {
+        cerr << "[ERROR] Sensor pointer is null.\n";
+        return 0.0;
+    }
 
     auto start = chrono::steady_clock::now();
+
     while (true)
     {
-        if (sensorInput->Get()) // HIGH = object detected / beam broken
+        try
         {
-            return chrono::duration<double>(chrono::steady_clock::now().time_since_epoch()).count();
+            if (sensorInput->Get())
+            {
+                return chrono::duration<double>(chrono::steady_clock::now().time_since_epoch()).count();
+            }
+        }
+        catch (const std::exception &ex)
+        {
+            cerr << "[ERROR] Sensor read failed: " << ex.what() << endl;
+            return 0.0;
         }
 
         if (chrono::steady_clock::now() - start > chrono::seconds(5))
         {
-            cerr << "[Warning] Sensor " << sensorID << " timeout." << endl;
+            cerr << "[Warning] Sensor timeout.\n";
             return 0.0;
         }
 
@@ -146,11 +168,16 @@ int main()
 {
     std::signal(SIGINT, SignalHandler);
     cout << "[HotWheels] Starting demo...\n";
-    //motorRamp->AmpEnableSet(false);
+    // motorRamp->AmpEnableSet(false);
 
     try
     {
         SetupRMP();
+        if (!controller)
+        {
+            cerr << "[Fatal] Controller pointer is null after SetupRMP." << endl;
+            return 1;
+        }
 
         while (!gShutdown)
         {
@@ -168,7 +195,7 @@ int main()
             cout << "[Sensor] Waiting for sensor 1..." << endl;
             while (t1 == 0.0)
             {
-                t1 = ReadSensor(1);
+                t1 = ReadSensor(sensor1Input);
                 this_thread::sleep_for(chrono::milliseconds(1));
             }
 
@@ -180,7 +207,7 @@ int main()
             cout << "[Sensor] Waiting for sensor 2..." << endl;
             while (t2 == 0.0)
             {
-                t2 = ReadSensor(2);
+                t2 = ReadSensor(sensor2Input);
                 this_thread::sleep_for(chrono::milliseconds(1));
             }
 
