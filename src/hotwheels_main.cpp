@@ -12,7 +12,8 @@ using namespace std;
 // === CONSTANTS ===
 constexpr double SENSOR_DISTANCE = 0.1; // meters
 constexpr double GRAVITY = 9.81;
-constexpr double UNITS_PER_DEGREE = 67108864;
+constexpr double UNITS_PER_DEGREE = 186413.5111;
+
 // constexpr double MAX_CATCHER_POSITION = 1.0;
 // constexpr double MIN_CATCHER_POSITION = 0.0;
 constexpr bool DEBUG_MODE = true;
@@ -71,7 +72,13 @@ void MoveSCurve(Axis *axis, double pos)
 {
     try
     {
-        axis->MoveSCurve(pos);
+        //  Motion parameters — tune as needed
+        double velocity = 50.0;         // deg/sec
+        double acceleration = 300.0;    // deg/sec²
+        double deceleration = 300.0;    // deg/sec²
+        double jerkPercent = 0.0;       // 0 = trapezoidal
+
+        axis->MoveSCurve(pos, velocity, acceleration, deceleration, jerkPercent);
     }
     catch (const std::exception &e)
     {
@@ -79,13 +86,13 @@ void MoveSCurve(Axis *axis, double pos)
     }
 }
 
+
 void SetupRMP()
 {
     MotionController::CreationParameters p;
     strncpy(p.RmpPath, "/rsi/", p.PathLengthMaximum);
     strncpy(p.NicPrimary, "enp6s0", p.PathLengthMaximum);
     p.CpuAffinity = 3;
-
 
     controller = MotionController::Create(&p);
     SampleAppsHelper::CheckErrors(controller);
@@ -101,15 +108,18 @@ void SetupRMP()
 
     try
     {
-        int sensorNode = 1;                                                     // AKD drive node
-        sensor1Input = IOPoint::CreateDigitalInput(controller, sensorNode, 0);  // X7 pin 9
-        sensor2Input = IOPoint::CreateDigitalInput(controller, sensorNode, 1); // X7 pin 10
+        int sensorNodeIndex = 1; // AKD = second node on the network
+
+        // ✅ Create IOPoint from network node (not axis)
+        sensor1Input = IOPoint::CreateDigitalInput(controller->NetworkNodeGet(sensorNodeIndex), 0); // Input 0
+        sensor2Input = IOPoint::CreateDigitalInput(controller->NetworkNodeGet(sensorNodeIndex), 1); // Input 1
+
         cout << "[I/O] Digital inputs created successfully.\n";
     }
     catch (const std::exception &e)
     {
         cerr << "[ERROR] Failed to create digital inputs: " << e.what() << endl;
-        exit(1); // Exit on critical setup failure
+        exit(1);
     }
 }
 
@@ -128,11 +138,19 @@ double ReadSensor(IOPoint *sensorInput)
     {
         try
         {
-            if (sensorInput->Get())
-            {
-                return chrono::duration<double>(chrono::steady_clock::now().time_since_epoch()).count();
+            bool val = sensorInput->Get();
+            cout << "[Debug] Sensor value: " << val << endl;
+            if(val == 0.0){
+                return 0.0;
             }
+            return chrono::duration<double>(chrono::steady_clock::now().time_since_epoch()).count();
         }
+        catch (const std::exception &ex)
+        {
+            cerr << "[ERROR] Sensor read failed: " << ex.what() << " | Pointer: " << sensorInput << endl;
+            return 0.0;
+        }
+
         catch (const std::exception &ex)
         {
             cerr << "[ERROR] Sensor read failed: " << ex.what() << endl;
@@ -188,7 +206,7 @@ int main()
             cin >> rampAngle;
 
             // 1. Set ramp angle
-            MoveSCurve(motorRamp, rampAngle);
+            MoveSCurve(motorRamp, rampAngle);           
 
             // 2. Wait for sensor 1 — car approaching gate
             double t1 = 0.0, t2 = 0.0;
@@ -196,18 +214,20 @@ int main()
             while (t1 == 0.0)
             {
                 t1 = ReadSensor(sensor1Input);
+                cout << "[Debug] t1 value: " << t1 << endl;
                 this_thread::sleep_for(chrono::milliseconds(1));
             }
 
             // 3. Open door to let car through
             cout << "[Gate] Opening door!" << endl;
-            MoveSCurve(motorDoor, 1.0);
+            MoveSCurve(motorDoor, 1);
 
             // 4. Wait for sensor 2 — car passed
             cout << "[Sensor] Waiting for sensor 2..." << endl;
             while (t2 == 0.0)
             {
                 t2 = ReadSensor(sensor2Input);
+                cout << "[Debug] t2 value: " << t2 << endl;
                 this_thread::sleep_for(chrono::milliseconds(1));
             }
 
