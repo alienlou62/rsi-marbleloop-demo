@@ -77,7 +77,14 @@ void MoveSCurve(Axis *axis, double pos)
         double acceleration = 300.0;    // deg/sec²
         double deceleration = 300.0;    // deg/sec²
         double jerkPercent = 0.0;       // 0 = trapezoidal
-
+        if(axis == motorDoor){
+            cout << "[DEBUG] Moving Motor Door\n";
+            //  Motion parameters for Door— tune as needed
+            velocity = 100000.0;         // deg/sec
+            acceleration = 300000.0;    // deg/sec²
+            deceleration = 300000.0;    // deg/sec²
+            jerkPercent = 0.0;       // 0 = trapezoidal
+            }    
         axis->MoveSCurve(pos, velocity, acceleration, deceleration, jerkPercent);
     }
     catch (const std::exception &e)
@@ -220,7 +227,7 @@ int main()
 
             // 3. Open door to let car through
             cout << "[Gate] Opening door!" << endl;
-            MoveSCurve(motorDoor, 1);
+            MoveSCurve(motorDoor, 100 - rampAngle);
 
             // 4. Wait for sensor 2 — car passed
             cout << "[Sensor] Waiting for sensor 2..." << endl;
