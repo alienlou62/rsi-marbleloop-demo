@@ -118,8 +118,8 @@ void SetupRMP()
         int sensorNodeIndex = 1; // AKD = second node on the network
 
         // ✅ Create IOPoint from network node (not axis)
-        sensor1Input = IOPoint::CreateDigitalInput(controller->NetworkNodeGet(sensorNodeIndex), 0); // Input 0
-        sensor2Input = IOPoint::CreateDigitalInput(controller->NetworkNodeGet(sensorNodeIndex), 1); // Input 1
+        sensor1Input = IOPoint::CreateDigitalInput(controller->NetworkNodeGet(sensorNodeIndex), 1); // Input 1
+        sensor2Input = IOPoint::CreateDigitalInput(controller->NetworkNodeGet(sensorNodeIndex), 0); // Input 0
 
         cout << "[I/O] Digital inputs created successfully.\n";
     }
