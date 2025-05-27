@@ -11,6 +11,7 @@ using namespace std;
 
 // === CONSTANTS ===
 constexpr double SENSOR_DISTANCE = 0.1; // meters
+constexpr double ANGLE_OFFSET = 3; // degrees
 constexpr double GRAVITY = 9.81;
 constexpr double UNITS_PER_DEGREE = 186413.5111;
 
@@ -182,7 +183,7 @@ double ComputeSpeed(double t1, double t2)
 
 double ComputeLandingPosition(double speed, double angleDeg)
 {
-    double angleRad = angleDeg * M_PI / 180.0;
+    double angleRad = (angleDeg) * M_PI / 180.0;
     double vx = speed * cos(angleRad);
     double vy = speed * sin(angleRad);
     double timeOfFlight = (2 * vy) / GRAVITY;
@@ -211,6 +212,9 @@ int main()
             double rampAngle;
             cout << "Enter ramp angle (degrees): ";
             cin >> rampAngle;
+
+            //account for angle offset
+            rampAngle = rampAngle - ANGLE_OFFSET;
 
             // 1. Set ramp angle
             MoveSCurve(motorRamp, rampAngle);           
