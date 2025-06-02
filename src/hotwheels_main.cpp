@@ -17,7 +17,7 @@ constexpr double UNITS_PER_DEGREE = 186413.5111;
 
 // constexpr double MAX_CATCHER_POSITION = 1.0;
 // constexpr double MIN_CATCHER_POSITION = 0.0;
-constexpr bool DEBUG_MODE = true;
+constexpr bool DEBUG_MODE = false;
 
 // === ENUMS ===
 enum AxisID
@@ -147,7 +147,7 @@ double ReadSensor(IOPoint *sensorInput)
         try
         {
             bool val = sensorInput->Get();
-            cout << "[Debug] Sensor value: " << val << endl;
+            if(DEBUG_MODE){ cout << "[Debug] Sensor value: " << val << endl;}
             if(val == 0.0){
                 return 0.0;
             }
@@ -183,7 +183,7 @@ double ComputeSpeed(double t1, double t2)
 
 double ComputeLandingPosition(double speed, double angleDeg)
 {
-    double angleRad = (angleDeg) * M_PI / 180.0;
+    double angleRad = angleDeg * M_PI / 180.0;
     double vx = speed * cos(angleRad);
     double vy = speed * sin(angleRad);
     double timeOfFlight = (2 * vy) / GRAVITY;
@@ -225,7 +225,7 @@ int main()
             while (t1 == 0.0)
             {
                 t1 = ReadSensor(sensor1Input);
-                cout << "[Debug] t1 value: " << t1 << endl;
+                if(DEBUG_MODE){ cout << "[Debug] t1 value: " << t1 << endl;}
                 this_thread::sleep_for(chrono::milliseconds(1));
             }
 
@@ -238,7 +238,7 @@ int main()
             while (t2 == 0.0)
             {
                 t2 = ReadSensor(sensor2Input);
-                cout << "[Debug] t2 value: " << t2 << endl;
+                if(DEBUG_MODE){ cout << "[Debug] t2 value: " << t2 << endl;}
                 this_thread::sleep_for(chrono::milliseconds(1));
             }
 
