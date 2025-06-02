@@ -11,12 +11,9 @@ using namespace std;
 
 // === CONSTANTS ===
 constexpr double SENSOR_DISTANCE = 0.1; // meters
-constexpr double ANGLE_OFFSET = 3; // degrees
+constexpr double ANGLE_OFFSET = 3;      // degrees
 constexpr double GRAVITY = 9.81;
 constexpr double UNITS_PER_DEGREE = 186413.5111;
-
-// constexpr double MAX_CATCHER_POSITION = 1.0;
-// constexpr double MIN_CATCHER_POSITION = 0.0;
 constexpr bool DEBUG_MODE = false;
 
 // === ENUMS ===
@@ -31,10 +28,10 @@ enum AxisID
 MotionController *controller = nullptr;
 Axis *motorRamp = nullptr;
 Axis *motorDoor = nullptr;
+Axis *motorCatcher = nullptr;
 IOPoint *sensor1Input = nullptr;
 IOPoint *sensor2Input = nullptr;
 
-// Axis *motorCatcher = nullptr;
 volatile sig_atomic_t gShutdown = 0;
 
 // === SIGNAL HANDLING ===
@@ -46,8 +43,8 @@ void SignalHandler(int signal)
         motorRamp->AmpEnableSet(false);
     if (motorDoor)
         motorDoor->AmpEnableSet(false);
-    // if (motorCatcher)
-    //     motorCatcher->AmpEnableSet(false);
+    if (motorCatcher)
+        motorCatcher->AmpEnableSet(false);
 }
 
 // === RMP SETUP ===
@@ -74,18 +71,19 @@ void MoveSCurve(Axis *axis, double pos)
     try
     {
         //  Motion parameters — tune as needed
-        double velocity = 50.0;         // deg/sec
-        double acceleration = 300.0;    // deg/sec²
-        double deceleration = 300.0;    // deg/sec²
-        double jerkPercent = 0.0;       // 0 = trapezoidal
-        if(axis == motorDoor){
+        double velocity = 50.0;      // deg/sec
+        double acceleration = 300.0; // deg/sec²
+        double deceleration = 300.0; // deg/sec²
+        double jerkPercent = 0.0;    // 0 = trapezoidal
+        if (axis == motorDoor)
+        {
             cout << "[DEBUG] Moving Motor Door\n";
             //  Motion parameters for Door— tune as needed
-            velocity = 100000.0;         // deg/sec
-            acceleration = 300000.0;    // deg/sec²
-            deceleration = 300000.0;    // deg/sec²
+            velocity = 100000.0;     // deg/sec
+            acceleration = 300000.0; // deg/sec²
+            deceleration = 300000.0; // deg/sec²
             jerkPercent = 0.0;       // 0 = trapezoidal
-            }    
+        }
         axis->MoveSCurve(pos, velocity, acceleration, deceleration, jerkPercent);
     }
     catch (const std::exception &e)
@@ -93,7 +91,6 @@ void MoveSCurve(Axis *axis, double pos)
         cerr << "[Error] Move failed: " << e.what() << endl;
     }
 }
-
 
 void SetupRMP()
 {
@@ -110,6 +107,8 @@ void SetupRMP()
     // Motor setup
     motorRamp = controller->AxisGet(RAMP);
     motorDoor = controller->AxisGet(DOOR);
+    motorCatcher = controller->AxisGet(CATCHER);
+    InitMotor(motorCatcher);
     InitMotor(motorRamp);
     InitMotor(motorDoor);
     cout << "[RMP] Motors initialized.\n";
@@ -147,8 +146,12 @@ double ReadSensor(IOPoint *sensorInput)
         try
         {
             bool val = sensorInput->Get();
-            if(DEBUG_MODE){ cout << "[Debug] Sensor value: " << val << endl;}
-            if(val == 0.0){
+            if (DEBUG_MODE)
+            {
+                cout << "[Debug] Sensor value: " << val << endl;
+            }
+            if (val == 0.0)
+            {
                 return 0.0;
             }
             return chrono::duration<double>(chrono::steady_clock::now().time_since_epoch()).count();
@@ -213,11 +216,11 @@ int main()
             cout << "Enter ramp angle (degrees): ";
             cin >> rampAngle;
 
-            //account for angle offset
+            // account for angle offset
             rampAngle = rampAngle - ANGLE_OFFSET;
 
             // 1. Set ramp angle
-            MoveSCurve(motorRamp, rampAngle);           
+            MoveSCurve(motorRamp, rampAngle);
 
             // 2. Wait for sensor 1 — car approaching gate
             double t1 = 0.0, t2 = 0.0;
@@ -225,7 +228,10 @@ int main()
             while (t1 == 0.0)
             {
                 t1 = ReadSensor(sensor1Input);
-                if(DEBUG_MODE){ cout << "[Debug] t1 value: " << t1 << endl;}
+                if (DEBUG_MODE)
+                {
+                    cout << "[Debug] t1 value: " << t1 << endl;
+                }
                 this_thread::sleep_for(chrono::milliseconds(1));
             }
 
@@ -238,7 +244,10 @@ int main()
             while (t2 == 0.0)
             {
                 t2 = ReadSensor(sensor2Input);
-                if(DEBUG_MODE){ cout << "[Debug] t2 value: " << t2 << endl;}
+                if (DEBUG_MODE)
+                {
+                    cout << "[Debug] t2 value: " << t2 << endl;
+                }
                 this_thread::sleep_for(chrono::milliseconds(1));
             }
 
@@ -249,12 +258,12 @@ int main()
             // 6. Compute physics
             double speed = ComputeSpeed(t1, t2);
             double landing = ComputeLandingPosition(speed, rampAngle);
-            // landing = std::clamp(landing, MIN_CATCHER_POSITION, MAX_CATCHER_POSITION);
+            landing = std::clamp(landing, MIN_CATCHER_POSITION, MAX_CATCHER_POSITION);
 
             cout << "[Physics] Speed: " << speed << " m/s | Landing: " << landing << " m" << endl;
 
             // 7. Move catcher
-            // MoveSCurve(motorCatcher, landing);
+            MoveSCurve(motorCatcher, landing);
 
             this_thread::sleep_for(chrono::seconds(3));
         }
@@ -272,7 +281,7 @@ int main()
         {
             motorRamp->AmpEnableSet(false);
             motorDoor->AmpEnableSet(false);
-            // motorCatcher->AmpEnableSet(false);
+            motorCatcher->AmpEnableSet(false);
             controller->Delete();
         }
         catch (...)
