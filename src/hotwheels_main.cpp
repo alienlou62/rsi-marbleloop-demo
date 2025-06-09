@@ -11,7 +11,7 @@ using namespace std;
 
 // === CONSTANTS ===
 constexpr double SENSOR_DISTANCE = 0.1; // meters
-constexpr double ANGLE_OFFSET = 3;      // degrees
+constexpr double ANGLE_OFFSET = 0;      // degrees
 constexpr double GRAVITY = 9.81;
 constexpr double UNITS_PER_DEGREE = 186413.5111;
 constexpr double UNITS_PER_METER = 8532248;
@@ -68,6 +68,9 @@ void InitMotor(Axis *axis)
     axis->HardwarePosLimitActionSet(RSIAction::RSIActionNONE);
     axis->HardwareNegLimitDurationSet(2);
     axis->HardwarePosLimitDurationSet(2);
+    if(axis == motorCatcher){
+        axis->HomeActionSet(RSIAction::RSIActionDONE);
+    }
 
     axis->ClearFaults();
     axis->AmpEnableSet(true);
@@ -176,12 +179,6 @@ double ReadSensor(IOPoint *sensorInput)
             return 0.0;
         }
 
-        catch (const std::exception &ex)
-        {
-            cerr << "[ERROR] Sensor read failed: " << ex.what() << endl;
-            return 0.0;
-        }
-
         if (chrono::steady_clock::now() - start > chrono::seconds(5))
         {
             cerr << "[Warning] Sensor timeout.\n";
@@ -237,6 +234,8 @@ int main()
 
             // 1. Set ramp angle
             MoveSCurve(motorRamp, rampAngle);
+            MoveSCurve(motorDoor, 0);
+            //MoveSCurve(motorCatcher, 0);
 
             // 2. Wait for sensor 1 — car approaching gate
             double t1 = 0.0, t2 = 0.0;
@@ -279,7 +278,7 @@ int main()
             cout << "[Physics] Speed: " << speed << " m/s | Landing: " << landing << " m" << endl;
 
             // 7. Move catcher
-            MoveSCurve(motorCatcher, 0.2);
+            MoveSCurve(motorCatcher, landing);
 
             this_thread::sleep_for(chrono::seconds(3));
         }
