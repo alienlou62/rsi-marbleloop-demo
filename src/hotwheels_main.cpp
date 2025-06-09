@@ -14,7 +14,10 @@ constexpr double SENSOR_DISTANCE = 0.1; // meters
 constexpr double ANGLE_OFFSET = 3;      // degrees
 constexpr double GRAVITY = 9.81;
 constexpr double UNITS_PER_DEGREE = 186413.5111;
-constexpr bool DEBUG_MODE = false;
+constexpr double UNITS_PER_METER = 8532248;
+constexpr double MIN_CATCHER_POSITION = 0;
+constexpr double MAX_CATCHER_POSITION = 0.84;
+constexpr bool DEBUG_MODE = true;
 
 // === ENUMS ===
 enum AxisID
@@ -50,7 +53,12 @@ void SignalHandler(int signal)
 // === RMP SETUP ===
 void InitMotor(Axis *axis)
 {
-    axis->UserUnitsSet(UNITS_PER_DEGREE);
+    if (axis == motorCatcher){
+        axis->UserUnitsSet(UNITS_PER_METER);
+    }
+    else{
+        axis->UserUnitsSet(UNITS_PER_DEGREE);
+    }
     axis->ErrorLimitTriggerValueSet(0.5);
     axis->ErrorLimitActionSet(RSIAction::RSIActionNONE);
 
@@ -63,7 +71,6 @@ void InitMotor(Axis *axis)
 
     axis->ClearFaults();
     axis->AmpEnableSet(true);
-    axis->CommandPositionSet(0.0);
 }
 
 void MoveSCurve(Axis *axis, double pos)
@@ -77,11 +84,18 @@ void MoveSCurve(Axis *axis, double pos)
         double jerkPercent = 0.0;    // 0 = trapezoidal
         if (axis == motorDoor)
         {
-            cout << "[DEBUG] Moving Motor Door\n";
             //  Motion parameters for Door— tune as needed
             velocity = 100000.0;     // deg/sec
             acceleration = 300000.0; // deg/sec²
             deceleration = 300000.0; // deg/sec²
+            jerkPercent = 0.0;       // 0 = trapezoidal
+        }
+        if (axis == motorCatcher){
+            cout << "[Catcher] Moving Catcher\n";
+            //  Motion parameters for Door— tune as needed
+            velocity = 20.0;     // deg/sec
+            acceleration = 75.0; // deg/sec²
+            deceleration = 75.0; // deg/sec²
             jerkPercent = 0.0;       // 0 = trapezoidal
         }
         axis->MoveSCurve(pos, velocity, acceleration, deceleration, jerkPercent);
@@ -215,7 +229,9 @@ int main()
             double rampAngle;
             cout << "Enter ramp angle (degrees): ";
             cin >> rampAngle;
-
+            if (rampAngle == 1.23){
+                gShutdown = true;
+            }
             // account for angle offset
             rampAngle = rampAngle - ANGLE_OFFSET;
 
@@ -263,7 +279,7 @@ int main()
             cout << "[Physics] Speed: " << speed << " m/s | Landing: " << landing << " m" << endl;
 
             // 7. Move catcher
-            MoveSCurve(motorCatcher, landing);
+            MoveSCurve(motorCatcher, 0.2);
 
             this_thread::sleep_for(chrono::seconds(3));
         }
