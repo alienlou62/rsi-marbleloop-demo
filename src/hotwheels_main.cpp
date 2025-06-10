@@ -17,6 +17,7 @@ constexpr double UNITS_PER_DEGREE = 186413.5111;
 constexpr double UNITS_PER_METER = 8532248;
 constexpr double MIN_CATCHER_POSITION = 0;
 constexpr double MAX_CATCHER_POSITION = 0.84;
+constexpr double RAMP_HEIGHT = 0.23; //relative to catcher
 constexpr bool DEBUG_MODE = true;
 
 // === ENUMS ===
@@ -200,7 +201,10 @@ double ComputeLandingPosition(double speed, double angleDeg)
     double angleRad = angleDeg * M_PI / 180.0;
     double vx = speed * cos(angleRad);
     double vy = speed * sin(angleRad);
-    double timeOfFlight = (2 * vy) / GRAVITY;
+    double timeUp = vy/GRAVITY;
+    double maxHeight = vy*timeUp + 0.5*GRAVITY*timeUp*timeUp;
+    double timeDown = sqrt((2*(maxHeight+RAMP_HEIGHT))/GRAVITY);
+    double timeOfFlight = timeUp+timeDown;
     return vx * timeOfFlight;
 }
 
