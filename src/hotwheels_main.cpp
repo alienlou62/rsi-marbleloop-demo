@@ -69,6 +69,7 @@ void InitMotor(Axis *axis)
     axis->HardwarePosLimitActionSet(RSIAction::RSIActionNONE);
     axis->HardwareNegLimitDurationSet(2);
     axis->HardwarePosLimitDurationSet(2);
+    axis->PositionSet(0);
     if(axis == motorCatcher){
         axis->HomeActionSet(RSIAction::RSIActionDONE);
     }
@@ -96,10 +97,10 @@ void MoveSCurve(Axis *axis, double pos)
         }
         if (axis == motorCatcher){
             cout << "[Catcher] Moving Catcher\n";
-            //  Motion parameters for Door— tune as needed
-            velocity = 20.0;     // deg/sec
-            acceleration = 75.0; // deg/sec²
-            deceleration = 75.0; // deg/sec²
+            //  Motion parameters for Catcher—tune as needed
+            velocity = 20.0;     // m/sec
+            acceleration = 75.0; // m/sec²
+            deceleration = 75.0; // m/sec²
             jerkPercent = 0.0;       // 0 = trapezoidal
         }
         axis->MoveSCurve(pos, velocity, acceleration, deceleration, jerkPercent);
