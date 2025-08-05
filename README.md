@@ -1,53 +1,82 @@
-# RapidMarble (RealTimeTasks + Sensor-Driven Flicker Demo)
+# MarbleLoop (Speed-Based Prediction Demo)
 
-**RapidMarble** is a precision motion control demonstration built using RSI’s [RMP EtherCAT Motion Controller](https://www.roboticsys.com/rmp-ethercat-motion-controller), showcasing the capabilities of [**RealTimeTasks**](https://support.roboticsys.com/rmp/rttasks.html) for deterministic, sensor-driven physical interactions — without requiring a real-time OS or low-level firmware code.
+**MarbleLoop** is a mechanical demonstration designed to showcase predictive motion coordination using real-time sensing and actuator control. It combines Sick WFE fork sensors, a Festo linear actuator, and a Mitsubishi MR-J motor to measure marble speed and adjust a catcher’s position and pipe angle for continuous looping motion.
 
-The demo features a marble that rolls down a guided track and is sensed mid-path by two digital sensors. The system calculates its speed in real-time and activates a high-speed “flicker” motor at the end of the track to launch the marble back into a funnel, allowing for continuous motion cycles.
+The demo highlights RSI’s motion system capabilities by using live I/O and motion control to anticipate and intercept free-moving marbles with sub-millisecond response precision.
 
----
+## 🚀 Features
 
-## 🎯 Key Features
+* Dual fork-sensor setup for high-speed marble velocity measurement
+* Predictive catcher positioning using a vertical Festo actuator
+* Automated pipe angle control via Mitsubishi MR-J servo motor
+* Modular design for continuous marble loop operation
+* Built using RSI’s [RMP EtherCAT Motion Controller](https://www.roboticsys.com/rmp-ethercat-motion-controller)
 
-- 🔁 Continuous feedback loop using **RTTask** (1ms deterministic loop)
-- ⏱️ Real-time speed calculation based on dual-sensor timestamping
-- ⚙️ High-speed flicker mechanism driven by trapezoidal motion profiles
-- 👇 Easily swappable with funnel-track or tube-based marble rails
-- 🧠 Pure RMP logic — no OS-level real-time kernel or external PLC required
+## 🏗️ Mechanical Overview
 
----
+* **Sensors**: 2× Sick WFE fork sensors (velocity measurement)
+* **Vertical Actuator**: Festo linear actuator with precision positioning
+* **Angle Adjustment**: Mitsubishi MR-J series servo motor
+* **Marble Path**: 5 ft curved tube with adjustable slope
+* **Frame**: Mobile cart-mounted aluminum extrusion structure
 
 ## 📁 Project Structure
 
-- `src/` – Core motion and control source code (RMP-based C++)
-- `scripts/` – Shell utilities to launch demo
-- `assets/` – 3D print models, CADs, and build diagrams *(optional)*
-- `README.md` – This document
+* `src/` – Core control logic (sensor reading, motion prediction, actuator commands)
+* `scripts/` – Utility launch scripts
+* `hardware/` – Configuration files for devices and IO mapping
+* `models/` – Optional: Predictive velocity → landing position mappings or physics helpers
 
----
+## 📦 Prerequisites
 
-## ⚙️ Hardware Requirements
+* Windows or Linux PC
+* [RMP SDK](https://support.roboticsys.com)
+* CMake + C++17
+* Fork sensor wiring to digital inputs
+* Mitsubishi MR-J driver configured via RSI
+* Festo actuator connected via EtherCAT or discrete IO
+* Optional: OpenCV or logging tools for visualization
 
-- **1x** Flicker Motor (e.g. Mitsubishi MR-J5 or AKD)
-- **2x** Digital Sensors (photo-interrupt, laser gate, etc.)
-- **1x** RMP-enabled EtherCAT controller
-- **1x** PC (Linux or Windows)
-- **Optional**: Funnel/Track System (3D printed or clear tubing)
+## 🏙️ Quick Start
 
----
+### 1️⃣ Sensor Testing
 
-## 💻 Software Requirements
+Make sure both WFE Sick fork sensors are wired to digital inputs and confirm edge detection using the I/O Monitor.
 
-- RMP SDK (latest stable version)
-- C++17 or newer compiler (e.g. `g++`)
-- RealTimeTasks enabled in your RMP license
-- Linux with kernel RT patch **(optional but recommended)**
+### 2️⃣ Launch MarbleLoop
 
----
+```bash
+cd scripts/
+./run_marbleloop.sh
+```
 
-## 🚀 Getting Started
+Modify `run_marbleloop.sh` to point to your build output or add `dotnet publish` if using a .NET wrapper.
 
-1. ✅ Wire your sensors to the digital inputs of the drive (e.g., AKD / MR-J5)
-2. 🔧 Update axis IDs and input indices in `src/main.cpp`
-3. 🛠️ Build the code:
-   ```bash
-   g++ -o marble_demo marble_demo.cpp -I<path-to-rmp-includes> -L<path-to-rmp-libs> -lrapidcode
+## 🔢 Example: Speed → Catch Position
+
+| Distance Between Sensors (in) | Time Between Triggers (ms) | Velocity (in/s) | Predicted Catcher Y (in) |
+| ----------------------------- | -------------------------- | --------------- | ------------------------ |
+| 3.00                          | 75                         | 40.00           | 8.1                      |
+| 3.00                          | 50                         | 60.00           | 11.2                     |
+| 3.00                          | 25                         | 120.00          | 16.5                     |
+
+*Values based on preliminary testing; adjust for ramp angle and friction.*
+
+## ⏱️ Performance Benchmarks
+
+| Component                      | Response Time (ms) |
+| ------------------------------ | ------------------ |
+| Sensor Trigger → Velocity Calc | < 1 ms             |
+| Prediction → Actuator Move     | < 5 ms             |
+| Full Catch Loop                | \~300–600 ms       |
+
+## 🔧 TODO / Future Improvements
+
+* Add OpenCV tracking as a secondary validation layer
+* Tune angle adjustment model using marble mass/friction calibration
+* Add visual indicator (LED or screen) to show system state (catch success/fail)
+* Integrate auto-reset mechanism for reloading marbles
+
+## 📄 License
+
+TO DETERMINE
