@@ -17,7 +17,7 @@ The demo highlights RSI’s motion system capabilities by using live I/O and mot
 * **Sensors**: 2× Sick WFE fork sensors (velocity measurement)
 * **Vertical Actuator**: Festo linear actuator with precision positioning
 * **Angle Adjustment**: Mitsubishi MR-J series servo motor
-* **Marble Path**: 5 ft curved tube with adjustable slope
+* **Marble Path**: Curved tube with adjustable slope
 * **Frame**: Mobile cart-mounted aluminum extrusion structure
 
 ## 📁 Project Structure
